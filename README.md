@@ -1,7 +1,10 @@
 # reliosparc - tools for interfacing between cryoSPARC and Relion
 
 Tristan Bell
-Chao Group, Mass General Hospital and Harvard Medical School
+
+Chao Group
+
+Mass General Hospital and Harvard Medical School
 
 ## Transferring particle coordinates from cryosparc to relion 
 
