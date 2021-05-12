@@ -9,9 +9,11 @@ The cs_to_stars.py script can take a cryosparc *.cs file, extract the particle c
 
 **Dependencies**
 
-Python 3.5+ with the Numpy package.  Numpy can be installed with
+ - Python 3.5+ with the Numpy package.  Numpy can be installed with
 
     python -m pip install numpy
+
+ - Your micrographs must have an invariant initial portion and a variant final portion.  I.e., mcg1, mcg2, ... , mcg999 will work, but 1mcg, 2mcg, ... , 999mcg will not.
 
 **Accepted input file formats**
 
