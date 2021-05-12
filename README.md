@@ -8,14 +8,17 @@ Chao Group, Mass General Hospital and Harvard Medical School
 The cs_to_stars.py script can take a cryosparc *.cs file, extract the particle coordinates, and format them into star files for easy import into relion.  **Please note** that this script only transfers particle coordinates.  If you would rather extract a particle stack in cryosparc and process it further in relion, the csparc2star script in David Asarnow's PyEM repository works well.
 
 **Dependencies**
+
 Python 3.5+ with the Numpy package.  Numpy can be installed with
 
     python -m pip install numpy
 
 **Accepted input file formats**
+
 The script requires a cryosparc *.cs particle or particle passthrough file.  If one file gives an error, try using a different particle file from the same job.  Not all cryosparc particle files contain the necessary coordinate info.
 
 The following cryosparc file types have been validated:
+
 | Cryosparc Job Type | Preferred Filetype | Example Filename | 
 |--|--|--|
 | 2D Classification | Particle Passthrough File | P45_J103_passthrough_particles.cs |
@@ -29,6 +32,7 @@ The following cryosparc file types have been validated:
 | Remove Duplicates |Particles Kept or Particles Excluded File | particles_kept.cs |
 
 **Running the Script**
+
 Run the script specifying your input cryosparc file:
 
     python cs_to_stars.py path/to/your/cryosparc/file.cs
@@ -36,6 +40,7 @@ Run the script specifying your input cryosparc file:
 A folder called Raw_data will be created in your working directory that contains a series of star files (one for each micrograph).
 
 **Using the star outputs**
+
  - The star outputs mimic those of a relion manual picking or autopicking job.
  - In relion, run a small manual picking or autopicking job, specifying all of your CTF-corrected micrographs as the template micrograph set.
  - After completing the job, navigate to the relion job folder for the picking job.  The relion job folder will contain a subdirectory called "Raw_data" that contains star files specifying the picked particle coordinates.
@@ -43,5 +48,6 @@ A folder called Raw_data will be created in your working directory that contains
  - You're done!  Any further jobs in relion using this job will pull the coordinates defined in your cryosparc file.  Happy processing!
 
 ## Bugs & Troubleshooting
+
 Feel free to reach out with any issues you encounter by opening a new issue item in the GitHub.  I will try to respond promptly to any issues.
 
