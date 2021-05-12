@@ -51,7 +51,7 @@ A folder called Raw_data will be created in your working directory that contains
  - The star outputs mimic those of a relion manual picking or autopicking job.
  - In relion, run a small manual picking or autopicking job, specifying all of your CTF-corrected micrographs as the template micrograph set.
  - After completing the job, navigate to the relion job folder for the picking job.  The relion job folder will contain a subdirectory called "Raw_data" that contains star files specifying the picked particle coordinates.
- - Delete the relion Raw_data folder and replace it with the Raw_data folder created by the python script.
+ - Delete the relion Raw_data folder and replace it with the Raw_data folder created by the python script.  (If you're transferring the files over a network, wrapping all the files up into a zip or tarball file will dramatically accelerate transfer.)
  - You're done!  Any further jobs in relion using this job will pull the coordinates defined in your cryosparc file.  Happy processing!
 
 ## Bugs & Troubleshooting
