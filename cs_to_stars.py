@@ -5,10 +5,7 @@ Chao Lab
 Massachusetts General Hospital
 
 This script takes a cryosparc .cs file for particles or particle passthrough and exports the particle coordinates to a
-group of star files that can mimic a relion autopicking job.
-
-Script assumes that your motion-corrected micrographs for extraction are in mrc format.
-
+group of star files that mimic a relion autopicking job.
 
 """
 
@@ -19,7 +16,7 @@ from os import listdir
 from os.path import isfile, join
 
 
-def main(inCs):
+def main(inCs, inMcgs):
 	# Check for the Raw_data subdirectory and delete any contents
 	if os.path.isdir("./Raw_data") == False:
 		os.mkdir("./Raw_data")
@@ -36,55 +33,67 @@ def main(inCs):
 			print("Exiting.")
 			exit()
 
-	# Read in the star file as a np array
+	# Read in the cs file as a np array
 	print("Reading the cryosparc file...")
 	f = np.load(inCs)
 
+	# Parse the micrograph names from the ctf.star file
+	print("Parsing micrograph names from star file...")
+	mcg_parsed_names = parse_star(inMcgs)
+
 	# Get the starting index for the particle location info
-	print("Procesing micrograph names...")
+	print("Matching micrograph names between cs and star files...")
 	start_index = infer_index(f)
 
-	# Sample the micrograph names to find the invariant portions
-	if len(f) < 100000:
-		end_ind = len(f)
-	else:
-		end_ind = 100000
-
+	# Match star to cs entries and save the per-particle micrograph names
 	mcg_names = []
-	for i in range(0, end_ind-1):
-		mcg_names.append(f[i][start_index].decode("utf-8"))
-	
-	# Work from the first and last non-constant indeces to identify the micrograph names
-	constant_container = get_constant_matrix(mcg_names)
-	first_var = 0
-	for i in range(0, len(constant_container)):
-		if constant_container[i] == False:
-			if first_var == 0:
-				first_var = i
-			last_var = i
-	mcg_start = mcg_names[0].find("_", first_var) + 1
-	mcg_suffix = mcg_find_suffix(mcg_names, mcg_start)
+	counter = 1
+	previous_soln = "this_is_a_placeholder_name_hopefully_noone_ever_names_their_files_this_starfish_gorilla_massachusetts_taco_tarnish.taco"
+	for i in range(0, len(f)):
+		found_match_flag = False
+		if counter % 100000 == 0:
+			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
+		# Try the previous solution before brute-forcing
+		if no_ext(previous_soln) in str(f[i][start_index]):
+			mcg_names.append(previous_soln)
+			found_match_flag = True
+		# Else brute-force it
+		else:
+			for mcg_name in mcg_parsed_names:
+				# Save operations by doing calculations once
+				target = str(f[i][start_index])
+				if no_ext(mcg_name) in target:
+					mcg_names.append(mcg_name)
+					previous_soln = mcg_name
+					found_match_flag = True
+					break
+		# Exit if the star and cs files don't have matching micrograph names
+		if found_match_flag == False:
+			print("\nERROR: There was no match found for the following micrograph: "+target)
+			print("This can happen if your cryosparc and relion jobs didn't use the same input raw micrographs.")
+			print("Perhaps the .cs file and the .star file don't correspond to the same data?")
+			print("Exiting...")
+			exit()
+		counter += 1
 	
 	# Load the particles into a dictionary
 	print("Transforming particle coordinates...")
 	coord_dict = {}
 	counter = 1
-	for item in f:
-		# Get micrograph name and confirm in dictionary
-		filename = item[start_index].decode("utf-8")
-		end_index = filename.find(mcg_suffix)
-		mcg_name = filename[mcg_start:end_index]+".mrc"
+	for i in range(0, len(f)):
+		# Pull micrograph name and add to dictionary
+		mcg_name = mcg_names[i]
 		if counter % 100000 == 0:
-			print(str(counter)+" / "+str(len(f)))
+			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
 		counter += 1
 		if mcg_name not in coord_dict:
 			coord_dict[mcg_name] = {"x":[], "y":[]}
 
 		# Calculate transformed x and y coords
-		h = item[start_index+1][0]
-		l = item[start_index+1][1]
-		x_frac = item[start_index+2]
-		y_frac = item[start_index+3]
+		h = f[i][start_index+1][0]
+		l = f[i][start_index+1][1]
+		x_frac = f[i][start_index+2]
+		y_frac = f[i][start_index+3]
 		x_coord = round((l*x_frac), 0)
 		y_coord = round(h-(h*y_frac), 0)
 
@@ -97,7 +106,7 @@ def main(inCs):
 	counter = 1
 	for item in coord_dict.keys():
 		if counter % 1000 == 0:
-			print(str(counter)+" / "+str(len(coord_dict.keys())))
+			print(clean_large_numbers(str(counter))+" / "+str(clean_large_numbers(len(coord_dict.keys()))))
 		counter += 1
 		g = open("Raw_data/"+no_ext(item)+"_autopick.star", "w", newline="")
 		#g.write("\n# version 30001\n\ndata_particle\n\nloop_ \n_rlnCoordinateX #1 \n_rlnCoordinateY #2 \n_rlnAutopickFigureOfMerit #3 \n_rlnClassNumber #4 \n_rlnAnglePsi #5 \n")
@@ -106,7 +115,24 @@ def main(inCs):
 			g.write(line_writer(coord_dict[item]["x"][i], coord_dict[item]["y"][i]))
 		g.write("\n")
 		g.close()
+
+	# Exit
 	print("Done.")
+
+
+def parse_star(inMcgs):
+	# Open file
+	f = open(inMcgs, "r")
+	lines = f.readlines()
+
+	# Find the entries starting as "MotionCorr"
+	mcgs = []
+	for i in range(0, len(lines)):
+		if lines[i][:10] == "MotionCorr":
+			# Split the line by " "
+			temp_items = lines[i].split()
+			mcgs.append(last_slash(temp_items[0]))
+	return mcgs
 
 
 def mcg_find_suffix(full_list, start_ind):
@@ -204,9 +230,40 @@ def no_ext(inStr):
 	return inStr[0:prevPos]
 
 
-if __name__ == "__main__":
-	if len(sys.argv) == 2:
-		main(sys.argv[1])
+def last_slash(inStr):
+	prevPos = 0
+	currentPos = 0
+	while currentPos != -1:
+		prevPos = currentPos
+		currentPos = inStr.find("/", prevPos+1)
+	return inStr[prevPos+1:]
+
+
+def clean_large_numbers(inInt):
+	"""
+	Takes an integer and re-formats to string with human-readable comma-spaced numbers.
+
+	"""
+	inStr = str(inInt)
+	outStr = ""
+	
+	if len(inStr) > 3:
+		for i in range(1, len(inStr)+1):
+			outStr = inStr[-i] + outStr
+			if i % 3 == 0:
+				outStr = "," + outStr
 	else:
-		print("Check usage: python cs_to_stars.py /path/to/your/cryosparc/file.cs")
+		outStr = inStr
+
+	if outStr[0] == ",":
+		return outStr[1:]
+	else:
+		return outStr
+
+
+if __name__ == "__main__":
+	if len(sys.argv) == 3:
+		main(sys.argv[1], sys.argv[2])
+	else:
+		print("Check usage: python cs_to_stars.py /path/to/your/cryosparc/file.cs /path/to/your/micrographs_ctf.star")
 		exit()
