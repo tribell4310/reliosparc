@@ -54,6 +54,8 @@ def main(inCs, inMcgs):
 		if counter % 100000 == 0:
 			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
 		# Try the previous solution before brute-forcing
+		#print(no_ext(previous_soln))
+		#print(str(f[i][start_index]))
 		if no_ext(previous_soln) in str(f[i][start_index]):
 			mcg_names.append(previous_soln)
 			found_match_flag = True
@@ -69,9 +71,16 @@ def main(inCs, inMcgs):
 					break
 		# Exit if the star and cs files don't have matching micrograph names
 		if found_match_flag == False:
-			print("\nERROR: There was no match found for the following micrograph: "+target)
+			try:
+				print("\nERROR: There was no match found for the following micrograph: "+target)
+			except:
+				print("\nERROR: There was no match found for at least one micrograph specified in the cs file.")
 			print("This can happen if your cryosparc and relion jobs didn't use the same input raw micrographs.")
 			print("Perhaps the .cs file and the .star file don't correspond to the same data?")
+			try:
+				print("DEBUG: start_index = "+str(start_index))
+			except:
+				pass
 			print("Exiting...")
 			exit()
 		counter += 1
@@ -125,13 +134,20 @@ def parse_star(inMcgs):
 	f = open(inMcgs, "r")
 	lines = f.readlines()
 
-	# Find the entries starting as "MotionCorr"
-	mcgs = []
+	# Find the position of "_rlnMicrographName" in the star file loop definition
 	for i in range(0, len(lines)):
-		if lines[i][:10] == "MotionCorr":
-			# Split the line by " "
-			temp_items = lines[i].split()
-			mcgs.append(last_slash(temp_items[0]))
+		if "loop_" in lines[i]:
+			loop_start = i
+			for j in range(i+1, len(lines)):
+				if "_rlnMicrographName" in lines[j]:
+					parse_pos = int(lines[j][lines[j].find("#")+1:])-1
+					break
+
+	# Isolate the micrograph name from each line of the star file
+	mcgs = []
+	for i in range(loop_start+1, len(lines)):
+		if lines[i][0] != "_":
+			mcgs.append(last_slash(lines[i].split(" ")[parse_pos]))
 	return mcgs
 
 
@@ -184,6 +200,7 @@ def get_constant_matrix(mcg_names):
 	
 	return constant_container
 
+
 def infer_index(np_array):
 	# Defined pattern is binary string, list of two ints >1000, float <= 1, float <=1
 	for i in range(0, len(np_array[1])):
@@ -199,7 +216,6 @@ def infer_index(np_array):
 				pass
 		except:
 			pass
-
 	return startInd
 
 
@@ -231,6 +247,9 @@ def no_ext(inStr):
 
 
 def last_slash(inStr):
+	"""
+	Returns the component of a string past the last forward slash character.
+	"""
 	prevPos = 0
 	currentPos = 0
 	while currentPos != -1:
