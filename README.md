@@ -66,3 +66,12 @@ A folder called Raw_data will be created in your working directory and populated
 
 Feel free to reach out with any issues you encounter by opening a new issue item in the GitHub.
 
+
+## Other Goodies
+
+The converge.py and converge_continue.py scripts track movement of particles between classes during 2D or 3D classification jobs in relion.  converge.py is used for regular classification jobs, converge_continue.py is used for "continue" jobs.  The scripts produce png plots of class populations and a converge.log logfile describing overall volatility in the class assignments.  It can be executed during a run (to track convergence of classes) or after a run has finished.  Just place the script into your relion job folder and run as follows:
+
+    python converge.py numberOfIterations &
+
+    python converge_continue.py numberOfInitialIterations numberOfTotalIterations &
+
