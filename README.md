@@ -73,5 +73,7 @@ The converge.py and converge_continue.py scripts track movement of particles bet
 
     python converge.py numberOfIterations &
 
+... or ...
+
     python converge_continue.py numberOfInitialIterations numberOfTotalIterations &
 
