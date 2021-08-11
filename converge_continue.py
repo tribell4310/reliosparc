@@ -82,13 +82,13 @@ def main(prevIterations, totalIterations):
 
 	# Load and process the continue iterations
 	while iteration <= totalIterations:
-		current_star = "run_ct"+threepad(str(prevIterations), 3)+"_it"+threepad(str(iteration), 3)+"_data.star"
-		if isfile("run_ct"+threepad(str(prevIterations), 3)+"_it"+threepad(str(iteration+1), 3)+"_data.star") == False:
+		current_star = "run_ct"+str(prevIterations)+"_it"+threepad(str(iteration), 3)+"_data.star"
+		if isfile("run_ct"+str(prevIterations)+"_it"+threepad(str(iteration+1), 3)+"_data.star") == False:
 			time.sleep(20)
 
 		if isfile(current_star):
 			# Pause for 15s to allow relion to actually write the star file.
-			if isfile("run_ct"+threepad(str(prevIterations), 3)+"_it"+threepad(str(iteration+1), 3)+"_data.star") == False:
+			if isfile("run_ct"+str(prevIterations)+"_it"+threepad(str(iteration+1), 3)+"_data.star") == False:
 				time.sleep(15)
 
 			# Read the current star file and populate the dictionary
