@@ -48,7 +48,7 @@ def main(inCs, inMcgs):
 	# Match star to cs entries and save the per-particle micrograph names
 	mcg_names = []
 	counter = 1
-	previous_soln = "this_is_a_placeholder_name_hopefully_noone_ever_names_their_files_this_starfish_gorilla_massachusetts_taco_tarnish.taco"
+	previous_soln = "this_is_a_placeholder_name_hopefully_noone_ever_names_their_files_this_starfish_gorilla_massachusetts_taco_tarnish"
 	for i in range(0, len(f)):
 		found_match_flag = False
 		if counter % 100000 == 0:
@@ -56,14 +56,14 @@ def main(inCs, inMcgs):
 		# Try the previous solution before brute-forcing
 		#print(no_ext(previous_soln))
 		#print(str(f[i][start_index]))
-		if no_ext(previous_soln) in str(f[i][start_index]):
+		if no_ext(previous_soln) in str(no_dot(f[i][start_index])):
 			mcg_names.append(previous_soln)
 			found_match_flag = True
 		# Else brute-force it
 		else:
 			for mcg_name in mcg_parsed_names:
 				# Save operations by doing calculations once
-				target = str(f[i][start_index])
+				target = str(no_dot(f[i][start_index]))
 				if no_ext(mcg_name) in target:
 					mcg_names.append(mcg_name)
 					previous_soln = mcg_name
@@ -231,6 +231,15 @@ def leftpad(inStr, final_len):
 	while len(inStr) < final_len:
 		inStr = " "+inStr
 	return inStr
+
+
+def no_dot(inStr):
+	"""
+	Relion converts "." in cryoparc names to "_" - this function takes a script and performs this
+	conversion prior to name-matching.
+
+	"""
+	return inStr.replace(".", "_")
 
 
 def no_ext(inStr):
