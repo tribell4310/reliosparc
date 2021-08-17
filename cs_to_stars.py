@@ -56,14 +56,14 @@ def main(inCs, inMcgs):
 		# Try the previous solution before brute-forcing
 		#print(no_ext(previous_soln))
 		#print(str(f[i][start_index]))
-		if no_ext(previous_soln) in str(no_dot(f[i][start_index])):
+		if no_ext(previous_soln) in no_dot(str(f[i][start_index])):
 			mcg_names.append(previous_soln)
 			found_match_flag = True
 		# Else brute-force it
 		else:
 			for mcg_name in mcg_parsed_names:
 				# Save operations by doing calculations once
-				target = str(no_dot(f[i][start_index]))
+				target = no_dot(str(f[i][start_index]))
 				if no_ext(mcg_name) in target:
 					mcg_names.append(mcg_name)
 					previous_soln = mcg_name
