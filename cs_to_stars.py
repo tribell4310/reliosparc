@@ -48,14 +48,12 @@ def main(inCs, inMcgs):
 	# Match star to cs entries and save the per-particle micrograph names
 	mcg_names = []
 	counter = 1
-	previous_soln = "this_is_a_placeholder_name_hopefully_noone_ever_names_their_files_this_starfish_gorilla_massachusetts_taco_tarnish"
+	previous_soln = "this_is_a_placeholder_name_hopefully_noone_ever_names_their_files_this_starfish_gorilla_massachusetts_taco_tarnish.mrc"
 	for i in range(0, len(f)):
 		found_match_flag = False
-		if counter % 100000 == 0:
+		if counter % 50000 == 0:
 			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
 		# Try the previous solution before brute-forcing
-		#print(no_ext(previous_soln))
-		#print(str(f[i][start_index]))
 		if no_ext(previous_soln) in no_dot(str(f[i][start_index])):
 			mcg_names.append(previous_soln)
 			found_match_flag = True
@@ -92,7 +90,7 @@ def main(inCs, inMcgs):
 	for i in range(0, len(f)):
 		# Pull micrograph name and add to dictionary
 		mcg_name = mcg_names[i]
-		if counter % 100000 == 0:
+		if counter % 50000 == 0:
 			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
 		counter += 1
 		if mcg_name not in coord_dict:
@@ -118,7 +116,6 @@ def main(inCs, inMcgs):
 			print(clean_large_numbers(str(counter))+" / "+str(clean_large_numbers(len(coord_dict.keys()))))
 		counter += 1
 		g = open("Raw_data/"+no_ext(item)+"_autopick.star", "w", newline="")
-		#g.write("\n# version 30001\n\ndata_particle\n\nloop_ \n_rlnCoordinateX #1 \n_rlnCoordinateY #2 \n_rlnAutopickFigureOfMerit #3 \n_rlnClassNumber #4 \n_rlnAnglePsi #5 \n")
 		g.write("\n# version 30001\n\ndata_\n\nloop_ \n_rlnCoordinateX #1 \n_rlnCoordinateY #2 \n_rlnAutopickFigureOfMerit #3 \n_rlnClassNumber #4 \n_rlnAnglePsi #5 \n")
 		for i in range(0, len(coord_dict[item]["x"])):
 			g.write(line_writer(coord_dict[item]["x"][i], coord_dict[item]["y"][i]))
