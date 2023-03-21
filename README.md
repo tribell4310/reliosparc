@@ -40,6 +40,8 @@ The following cryosparc file types have been validated:
 
 The script also requires the corresponding "micrographs_ctf.star" file from your relion job.  If you have imported the same micrographs into relion as you did into cryosparc (then performed motion correction and Ctf correction in relion), this file can be found in the folder for your relion CtfFind job.
 
+*Note:* For cryosparc 4.x.x, use a particle extraction job, and the extracted_particles.cs file in the job directory.
+
 
 
 **Running the Script**
