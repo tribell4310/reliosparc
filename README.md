@@ -48,7 +48,7 @@ The script also requires the corresponding "micrographs_ctf.star" file from your
 
 Run the script specifying your input cryosparc file and micrographs_ctf.star file:
 
-    python cs_to_stars.py path/to/your/cryosparc/file.cs /path/to/your/micrographs_ctf.star
+    python cs_to_stars.py --cs path/to/your/cryosparc/file.cs --star /path/to/your/micrographs_ctf.star
 
 A folder called Raw_data will be created in your working directory and populated with a star files (one for each micrograph).
 
