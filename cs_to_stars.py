@@ -1,11 +1,13 @@
 """
 
 Tristan Bell
-Chao Lab
-Massachusetts General Hospital
+Massachusetts General Hospital / Harvard Medical School
 
 This script takes a cryosparc .cs file for particles or particle passthrough and exports the particle coordinates to a
 group of star files that mimic a relion autopicking job.
+
+Revised to accommodate data format changes in RELION 4/5 and CryoSPARC 4.
+
 
 """
 
@@ -14,9 +16,24 @@ import numpy as np
 import os
 from os import listdir
 from os.path import isfile, join
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--cs", help="cryosparc particle pick file")
+parser.add_argument("--star", help="relion migrographs_ctf.star file")
+parser.add_argument("--no_nudge", help="turn off dynamic selection in cs files", action="store_true")
+parser.add_argument("--flipx", help="invert coordinates in x-axis", action="store_true")
+parser.add_argument("--flipy", help="invert coordinates in y-axis", action="store_true")
+args = parser.parse_args()
 
 
-def main(inCs, inMcgs):
+def main(args):#inCs, inMcgs):#, args):
+	print(args)
+	#exit()
+	# Parse arguments -> simple variables for back compatibility
+	inCs = args.cs 
+	inMcgs = args.star
+	force_no_nudge = args.no_nudge
+
 	# Check for the Raw_data subdirectory and delete any contents
 	if os.path.isdir("./Raw_data") == False:
 		os.mkdir("./Raw_data")
@@ -50,6 +67,7 @@ def main(inCs, inMcgs):
 	counter = 1
 	previous_soln = "this_is_a_placeholder_name_hopefully_noone_ever_names_their_files_this_starfish_gorilla_massachusetts_taco_tarnish.mrc"
 	for i in range(0, len(f)):
+		#if counter < 20:
 		found_match_flag = False
 		if counter % 50000 == 0:
 			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
@@ -82,6 +100,34 @@ def main(inCs, inMcgs):
 			print("Exiting...")
 			exit()
 		counter += 1
+
+	# Define indeces for x_frac and y_frac by checking for overly consistent coordinates
+	# Check if start_index+2, +3, +4 are floats
+	if (f[0][start_index+2].dtype == "float32") and (f[0][start_index+2] <= 1.0) and (f[0][start_index+3].dtype == "float32") and (f[0][start_index+3] <= 1.0)  and (f[0][start_index+4].dtype == "float32") and (f[0][start_index+4] <= 1.0):
+		need_nudge_flag = True
+	else:
+		need_nudge_flag = False
+
+	# If all three are coordinate floats of 1 or less, iterate over the particles and look repetition in positions +2, +3, and +4
+	problem_indeces = []
+	if need_nudge_flag == True:
+		for i in [2, 3, 4]:
+			nonunique_items = []
+			for j in range(0, len(f)):
+				nonunique_items.append(f[j][start_index+i])
+			if len(set(nonunique_items)) < len(f) * 0.01:
+				problem_indeces.append(i)
+		if force_no_nudge == True:
+			print("\nWARNING: --no_nudge flag was invoked by user.\n\tThe script is forced to guess based on where they usually are.\n\tThe output coordinates may not be correct!\n\tPlease verify that your output pick positions match what you expect.\n\tProceeding...\n")
+			adj_start_index = start_index
+		elif (2 in problem_indeces) and (len(problem_indeces) == 1):
+			print("\nNOTICE: Particle coordinates may have been stored in an unexpected place in the cryosparc file provided.\n\tWe have made our best guess as to where in the file your pick coordinates are.\n\tWe're quite confident they *should* be correct, but can't guarantee it.\n\tThis probably isn't a problem, but please carefully verify that your output pick positions match what you expect.\n\tTo disable this dynamic selection and fall back to where the coordinates *usually* are, rerun\n\t\t the program with the --no_nudge flag.\n\tIf this continues to be an issue, try a different cryosparc output file.\n\tProceeding...\n")
+			adj_start_index = start_index + 1 # nudged start index to accomodate the extra cryosparc data
+		else:
+			print("\nWARNING: We could not unambiguously identify the particle coordinates in this cryosparc file.\n\tThe script is forced to guess based on where they usually are.\n\tThe output coordinates may not be correct!\n\tPlease verify that your output pick positions match what you expect.\n\tProceeding...\n")
+			adj_start_index = start_index
+	else:
+		adj_start_index = start_index
 	
 	# Load the particles into a dictionary
 	print("Transforming particle coordinates...")
@@ -99,8 +145,14 @@ def main(inCs, inMcgs):
 		# Calculate transformed x and y coords
 		h = f[i][start_index+1][0]
 		l = f[i][start_index+1][1]
-		x_frac = f[i][start_index+2]
-		y_frac = f[i][start_index+3]
+		if args.flipx == False:
+			x_frac = f[i][adj_start_index+2]
+		else:
+			x_frac = 1 - f[i][adj_start_index+2]
+		if args.flipy == False:
+			y_frac = f[i][adj_start_index+3]
+		else:
+			y_frac = 1 - f[i][adj_start_index+3]
 		x_coord = round((l*x_frac), 0)
 		y_coord = round(h-(h*y_frac), 0)
 
@@ -136,7 +188,7 @@ def parse_star(inMcgs):
 		if "loop_" in lines[i]:
 			loop_start = i
 			for j in range(i+1, len(lines)):
-				if "_rlnMicrographName" in lines[j]:
+				if "_rlnMicrographName " in lines[j]:
 					parse_pos = int(lines[j][lines[j].find("#")+1:])-1
 					break
 
@@ -145,7 +197,14 @@ def parse_star(inMcgs):
 	for i in range(loop_start+1, len(lines)):
 		if lines[i][0] != "_":
 			mcgs.append(last_slash(lines[i].split(" ")[parse_pos]))
-	return mcgs
+
+	# Final check for zero-length strings
+	clean_mcgs = []
+	for i in range(0, len(mcgs)):
+		if len(mcgs[i]) > 0:
+			clean_mcgs.append(mcgs[i])
+	
+	return clean_mcgs
 
 
 def mcg_find_suffix(full_list, start_ind):
@@ -287,8 +346,7 @@ def clean_large_numbers(inInt):
 
 
 if __name__ == "__main__":
-	if len(sys.argv) == 3:
-		main(sys.argv[1], sys.argv[2])
+	if (args.cs == None) or (args.star == None):
+		print("Check usage: python cs_to_stars.py --cs /path/to/your/cryosparc/file.cs --relion /path/to/your/micrographs_ctf.star\nUse python cs_to_stars.py --help for all options.")
 	else:
-		print("Check usage: python cs_to_stars.py /path/to/your/cryosparc/file.cs /path/to/your/micrographs_ctf.star")
-		exit()
+		main(args)
