@@ -8,7 +8,7 @@ Massachusetts General Hospital and Harvard Medical School
 
 ## Transferring particle coordinates from cryosparc to relion 
 
-The cs_to_stars.py script can take a cryosparc *.cs file, extract the particle coordinates, and format them into star files for easy import into relion.  **Please note** that this script only transfers particle coordinates.  If you would rather extract a particle stack in cryosparc and process it further in relion, the csparc2star script in Daniel Asarnow's PyEM repository works well.
+The cs_to_stars.py script can take a cryosparc *.cs file, extract the particle coordinates, and format them into star files for easy import into relion.  **Please note** that this script only transfers particle coordinates.  If you would rather extract a particle stack in cryosparc and process it further in relion, the csparc2star script in D. Asarnow's PyEM repository works well.
 
 
 
