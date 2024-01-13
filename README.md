@@ -52,6 +52,14 @@ Run the script specifying your input cryosparc file and micrographs_ctf.star fil
 
 A folder called Raw_data will be created in your working directory and populated with a star files (one for each micrograph).
 
+**Options**
+
+| Flag | Description |
+|--|--|
+| --flipx | inverts particle coordinates in x dimension |
+| --flipy | inverts particle coordinates in y dimension |
+| --no_nudge | overrides default coordinate identification behavior for cs files (*not recommended for most users*, only consider if prompted by the script at runtime)
+
 
 
 **Using the star outputs**
