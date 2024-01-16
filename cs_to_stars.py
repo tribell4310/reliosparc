@@ -23,6 +23,7 @@ parser.add_argument("--star", help="relion migrographs_ctf.star file")
 parser.add_argument("--no_nudge", help="turn off dynamic selection in cs files", action="store_true")
 parser.add_argument("--flipx", help="invert coordinates in x-axis", action="store_true")
 parser.add_argument("--flipy", help="invert coordinates in y-axis", action="store_true")
+parser.add_argument("--swapxy", help="swap x- and y-coordinates", action="store_true")
 args = parser.parse_args()
 
 
@@ -153,8 +154,13 @@ def main(args):#inCs, inMcgs):#, args):
 			y_frac = f[i][adj_start_index+3]
 		else:
 			y_frac = 1 - f[i][adj_start_index+3]
-		x_coord = round((l*x_frac), 0)
-		y_coord = round(h-(h*y_frac), 0)
+
+		if args.swapxy == False: #swapxy implementation
+			x_coord = round((l*x_frac), 0)
+			y_coord = round(h-(h*y_frac), 0)
+		else:
+			x_coord = round(h-(h*y_frac), 0)
+			y_coord = round((l*x_frac), 0)
 
 		# Add to dictionary
 		coord_dict[mcg_name]["x"].append(str(round(x_coord, 6)))
