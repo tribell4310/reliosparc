@@ -58,7 +58,8 @@ A folder called Raw_data will be created in your working directory and populated
 |--|--|
 | --flipx | inverts particle coordinates in x dimension |
 | --flipy | inverts particle coordinates in y dimension |
-| --no_nudge | overrides default coordinate identification behavior for cs files (*not recommended for most users*, only consider if prompted by the script at runtime)
+| --swapxy | swap x- and y-coordinates in output stars |
+| --no_nudge | overrides default coordinate identification behavior for cs files (*not recommended for most users*, only consider if prompted by the script at runtime) |
 
 
 
