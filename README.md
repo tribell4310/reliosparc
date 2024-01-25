@@ -1,7 +1,6 @@
 # reliosparc - interfacing between cryoSPARC and Relion
 
-Tristan Bell
-Massachusetts General Hospital and Harvard Medical School
+Tristan Bell, *Massachusetts General Hospital and Harvard Medical School*
 
 ## Transferring particle coordinates from cryosparc to relion 
 
