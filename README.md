@@ -75,7 +75,7 @@ A folder called Raw_data will be created in your working directory and populated
 
 ## Bugs & Troubleshooting
 
-Feel free to reach out with any issues you encounter by opening a new issue item in the GitHub.
+Feel free to reach out with any issues you encounter by opening a new issue item in the GitHub or emailing me at tribell4310 [at] gmail [dot] com.
 
 
 ## Other Goodies
