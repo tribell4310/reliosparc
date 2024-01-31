@@ -22,7 +22,7 @@ The script requires a cryosparc *.cs particle or particle passthrough file.  If 
 
 **Note: For cryosparc 4.x.x, use a particle extraction job, and the extracted_particles.cs file in the job directory.**
 
-The following cryosparc 3.x.x file types have been validated:
+The following **cryosparc 3.x.x** file types have been validated:
 
 | Cryosparc Job Type | Preferred Filetype | Example Filename |
 |--|--|--|
