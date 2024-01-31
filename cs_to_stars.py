@@ -1,7 +1,6 @@
 """
 
 Tristan Bell
-Massachusetts General Hospital / Harvard Medical School
 
 This script takes a cryosparc .cs file for particles or particle passthrough and exports the particle coordinates to a
 group of star files that mimic a relion autopicking job.
@@ -28,8 +27,6 @@ args = parser.parse_args()
 
 
 def main(args):#inCs, inMcgs):#, args):
-	print(args)
-	#exit()
 	# Parse arguments -> simple variables for back compatibility
 	inCs = args.cs 
 	inMcgs = args.star
@@ -61,7 +58,7 @@ def main(args):#inCs, inMcgs):#, args):
 
 	# Get the starting index for the particle location info
 	print("Matching micrograph names between cs and star files...")
-	start_index = infer_index(f)
+	start_index, x_index = infer_index(f)
 
 	# Match star to cs entries and save the per-particle micrograph names
 	mcg_names = []
@@ -103,32 +100,35 @@ def main(args):#inCs, inMcgs):#, args):
 		counter += 1
 
 	# Define indeces for x_frac and y_frac by checking for overly consistent coordinates
-	# Check if start_index+2, +3, +4 are floats
-	if (f[0][start_index+2].dtype == "float32") and (f[0][start_index+2] <= 1.0) and (f[0][start_index+3].dtype == "float32") and (f[0][start_index+3] <= 1.0)  and (f[0][start_index+4].dtype == "float32") and (f[0][start_index+4] <= 1.0):
+	# Check if x_index and x_index+1 are floats
+	if (f[0][x_index].dtype == "float32") and (f[0][x_index] <= 1.0) and (f[0][x_index+1].dtype == "float32") and (f[0][x_index+1] <= 1.0):
 		need_nudge_flag = True
 	else:
 		need_nudge_flag = False
 
 	# If all three are coordinate floats of 1 or less, iterate over the particles and look repetition in positions +2, +3, and +4
 	problem_indeces = []
-	if need_nudge_flag == True:
-		for i in [2, 3, 4]:
-			nonunique_items = []
-			for j in range(0, len(f)):
-				nonunique_items.append(f[j][start_index+i])
-			if len(set(nonunique_items)) < len(f) * 0.01:
-				problem_indeces.append(i)
-		if force_no_nudge == True:
-			print("\nWARNING: --no_nudge flag was invoked by user.\n\tThe script is forced to guess based on where they usually are.\n\tThe output coordinates may not be correct!\n\tPlease verify that your output pick positions match what you expect.\n\tProceeding...\n")
-			adj_start_index = start_index
-		elif (2 in problem_indeces) and (len(problem_indeces) == 1):
-			print("\nNOTICE: Particle coordinates may have been stored in an unexpected place in the cryosparc file provided.\n\tWe have made our best guess as to where in the file your pick coordinates are.\n\tWe're quite confident they *should* be correct, but can't guarantee it.\n\tThis probably isn't a problem, but please carefully verify that your output pick positions match what you expect.\n\tTo disable this dynamic selection and fall back to where the coordinates *usually* are, rerun\n\t\t the program with the --no_nudge flag.\n\tIf this continues to be an issue, try a different cryosparc output file.\n\tProceeding...\n")
-			adj_start_index = start_index + 1 # nudged start index to accomodate the extra cryosparc data
+	if start_index == x_index:
+		if need_nudge_flag == True:
+			for i in [2, 3, 4]:
+				nonunique_items = []
+				for j in range(0, len(f)):
+					nonunique_items.append(f[j][start_index+i])
+				if len(set(nonunique_items)) < len(f) * 0.01:
+					problem_indeces.append(i)
+			if force_no_nudge == True:
+				print("\nWARNING: --no_nudge flag was invoked by user.\n\tThe script is forced to guess based on where they usually are.\n\tThe output coordinates may not be correct!\n\tPlease verify that your output pick positions match what you expect.\n\tProceeding...\n")
+				adj_start_index = start_index
+			elif (2 in problem_indeces) and (len(problem_indeces) == 1):
+				print("\nNOTICE: Particle coordinates may have been stored in an unexpected place in the cryosparc file provided.\n\tWe have made our best guess as to where in the file your pick coordinates are.\n\tWe're quite confident they *should* be correct, but can't guarantee it.\n\tThis probably isn't a problem, but please carefully verify that your output pick positions match what you expect.\n\tTo disable this dynamic selection and fall back to where the coordinates *usually* are, rerun\n\t\t the program with the --no_nudge flag.\n\tIf this continues to be an issue, try a different cryosparc output file.\n\tProceeding...\n")
+				adj_start_index = start_index + 1 # nudged start index to accomodate the extra cryosparc data
+			else:
+				print("\nWARNING: We could not unambiguously identify the particle coordinates in this cryosparc file.\n\tThe script is forced to guess based on where they usually are.\n\tThe output coordinates may not be correct!\n\tPlease verify that your output pick positions match what you expect.\n\tProceeding...\n")
+				adj_start_index = start_index
 		else:
-			print("\nWARNING: We could not unambiguously identify the particle coordinates in this cryosparc file.\n\tThe script is forced to guess based on where they usually are.\n\tThe output coordinates may not be correct!\n\tPlease verify that your output pick positions match what you expect.\n\tProceeding...\n")
 			adj_start_index = start_index
 	else:
-		adj_start_index = start_index
+		adj_start_index = x_index - 2
 	
 	# Load the particles into a dictionary
 	print("Transforming particle coordinates...")
@@ -264,7 +264,7 @@ def get_constant_matrix(mcg_names):
 
 
 def infer_index(np_array):
-	# Defined pattern is binary string, list of two ints >1000, float <= 1, float <=1
+	# Default defined pattern is binary string, list of two ints >1000, float <= 1, float <=1
 	for i in range(0, len(np_array[1])):
 		try:
 			np_array[1][i].decode("utf-8")
@@ -278,7 +278,23 @@ def infer_index(np_array):
 				pass
 		except:
 			pass
-	return startInd
+	try:
+		return startInd, startInd+2
+	except: # backup pattern is binary string, list of two ints, float > 1, float <1, float <1
+		for i in range(0, len(np_array[1])):
+			try:
+				np_array[1][i].decode("utf-8")
+				try:
+					a = len(np_array[1][i+1])
+					if np_array[1][i+2] > 1:
+						if np_array[1][i+3] < 1:
+							if np_array[1][i+4] < 1:
+								startInd = i
+								return startInd, startInd+3
+				except:
+					pass
+			except:
+				pass
 
 
 def line_writer(x, y):
