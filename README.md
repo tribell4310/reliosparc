@@ -20,6 +20,8 @@ Python 3.5+ with the Numpy package.  Numpy can be installed with
 
 The script requires a cryosparc *.cs particle or particle passthrough file.  If one file gives an error, try using a different particle file from the same job.  Not all cryosparc files contain particle coordinate info.
 
+**Note: For cryosparc 4.x.x, use a particle extraction job, and the extracted_particles.cs file in the job directory.**
+
 The following cryosparc 3.x.x file types have been validated:
 
 | Cryosparc Job Type | Preferred Filetype | Example Filename |
@@ -35,8 +37,6 @@ The following cryosparc 3.x.x file types have been validated:
 | Remove Duplicates |Particles Kept or Particles Excluded File | particles_kept.cs |
 
 The script also requires the corresponding "micrographs_ctf.star" file from your relion job.  If you have imported the same micrographs into relion as you did into cryosparc (then performed motion correction and Ctf correction in relion), this file can be found in the folder for your relion CtfFind job.
-
-*Note:* For cryosparc 4.x.x, use a particle extraction job, and the extracted_particles.cs file in the job directory.
 
 
 
