@@ -20,7 +20,11 @@ Python 3.5+ with the Numpy package.  Numpy can be installed with
 
 The script requires a cryosparc *.cs particle or particle passthrough file.  If one file gives an error, try using a different particle file from the same job.  Not all cryosparc files contain particle coordinate info.
 
-**Note: For cryosparc 4.x.x, use a particle extraction job, and the extracted_particles.cs file in the job directory.**
+The following **cryosparc 4.x.x** file types have been validated:
+
+| Cryosparc Job Type | Preferred Filetype | Example Filename |
+|--|--|--|
+| Particle Extraction | Extracted Particle File | extracted_particles.cs |
 
 The following **cryosparc 3.x.x** file types have been validated:
 
