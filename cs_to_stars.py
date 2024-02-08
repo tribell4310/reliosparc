@@ -67,7 +67,7 @@ def main(args):#inCs, inMcgs):#, args):
 	for i in range(0, len(f)):
 		#if counter < 20:
 		found_match_flag = False
-		if counter % 50000 == 0:
+		if counter % 10000 == 0:
 			print(str(clean_large_numbers(counter))+" / "+str(clean_large_numbers(len(f))))
 		# Try the previous solution before brute-forcing
 		if no_ext(previous_soln) in no_dot(str(f[i][start_index])):
@@ -263,16 +263,45 @@ def get_constant_matrix(mcg_names):
 	return constant_container
 
 
+def assess_variability(np_array, start_index):
+	# Check the variability in floats at positions i+2, i+3, i+4
+	# If i+2 and i+3 are variable but i+4 is not, return False
+	# Else return True
+	plus2 = []
+	plus3 = []
+	plus4 = []
+
+	for i in range(len(np_array)):
+		plus2.append(np_array[i][start_index+2])
+		plus3.append(np_array[i][start_index+3])
+		plus4.append(np_array[i][start_index+4])
+
+	plus2setlen = len(set(plus2))
+	plus3setlen = len(set(plus3))
+	plus4setlen = len(set(plus4))
+
+	if plus2setlen > plus4setlen:
+		return False
+	else:
+		return True
+	
+
 def infer_index(np_array):
 	# Default defined pattern is binary string, list of two ints >1000, float <= 1, float <=1
+	# If there's a subsequent float 0-1, then scan the array to see which sites are most variable
 	for i in range(0, len(np_array[1])):
 		try:
 			np_array[1][i].decode("utf-8")
 			try:
 				a = len(np_array[1][i+1])
-				if np_array[1][i+2] < 1:
-					if np_array[1][i+3] < 1:
+				if (np_array[1][i+2] >= 0) and (np_array[1][i+2] <= 1):
+					if (np_array[1][i+3] >= 0) and (np_array[1][i+3] <= 1):
 						startInd = i
+						if (np_array[1][i+4] >= 0) and (np_array[1][i+4] <= 1):
+							if assess_variability(np_array, i) == False:
+								return i, i+2
+							else:
+								return i, i+3
 						break
 			except:
 				pass
@@ -286,11 +315,13 @@ def infer_index(np_array):
 				np_array[1][i].decode("utf-8")
 				try:
 					a = len(np_array[1][i+1])
-					if np_array[1][i+2] > 1:
-						if np_array[1][i+3] < 1:
-							if np_array[1][i+4] < 1:
-								startInd = i
-								return startInd, startInd+3
+					if np_array[1][i+2] >= 1:
+						if (np_array[1][i+3] <= 1) and (np_array[1][i+3] >= 0):
+							if (np_array[1][i+4] <= 1) and (np_array[1][i+4] >= 0):
+								if assess_variability(np_array, i) == False:
+									return i, i+3
+								else:
+									return i, i+4
 				except:
 					pass
 			except:
@@ -369,6 +400,6 @@ def clean_large_numbers(inInt):
 
 if __name__ == "__main__":
 	if (args.cs == None) or (args.star == None):
-		print("Check usage: python cs_to_stars.py --cs /path/to/your/cryosparc/file.cs --relion /path/to/your/micrographs_ctf.star\nUse python cs_to_stars.py --help for all options.")
+		print("Check usage: python cs_to_stars.py --cs /path/to/your/cryosparc/file.cs --star /path/to/your/micrographs_ctf.star\nUse python cs_to_stars.py --help for all options.")
 	else:
 		main(args)
